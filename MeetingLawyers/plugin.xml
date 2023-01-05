@@ -2,6 +2,6 @@
 <plugin id="com-meetinglawyers-cordova" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>MeetingLawyers</name>
     <js-module name="MeetingLawyers" src="www/MeetingLawyers.js">
-        <clobbers target="cordova.plugins.MeetingLawyers" />
+        <clobbers target="meetinglawyers" />
     </js-module>
 </plugin>
