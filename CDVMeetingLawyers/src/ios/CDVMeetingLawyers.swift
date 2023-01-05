@@ -1,4 +1,4 @@
-@objc(MeetingLawyers) class MeetingLawyers : CDVPlugin {
+@objc(CDVMeetingLawyers) class CDVMeetingLawyers : CDVPlugin {
     @objc(echo:)
     func echo(_ command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult(

@@ -3,15 +3,15 @@
     xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <name>MeetingLawyers</name>
-    <js-module name="MeetingLawyers" src="www/MeetingLawyers.js">
+    <js-module name="CDVMeetingLawyers" src="www/CDVMeetingLawyers.js">
         <clobbers target="meetinglawyers" />
     </js-module>
     <platform name="ios">
         <config-file parent="/*" target="config.xml">
-            <feature name="MeetingLawyers">
-                <param name="ios-package" value="MeetingLawyers" />
+            <feature name="CDVMeetingLawyers">
+                <param name="ios-package" value="CDVMeetingLawyers" />
             </feature>
         </config-file>
-        <source-file src="src/ios/MeetingLawyers.swift" />
+        <source-file src="src/ios/CDVMeetingLawyers.swift" />
     </platform>
 </plugin>
