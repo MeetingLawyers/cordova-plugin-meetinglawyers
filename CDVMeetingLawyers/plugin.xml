@@ -11,7 +11,25 @@
             <feature name="CDVMeetingLawyers">
                 <param name="ios-package" value="CDVMeetingLawyers" />
             </feature>
+            <preference name="deployment-target" value="13.0" />
+            <preference name="UseSwiftLanguageVersion" value="5" />
         </config-file>
         <source-file src="src/ios/CDVMeetingLawyers.swift" />
+        <podspec>
+            <config>
+                <!-- CocoaPods repositories -->
+                <source url="https://cdn.cocoapods.org/"/>
+                <source url="https://bitbucket.org/meetinglawyers/ios-cocoapods-specs.git"/>
+                <source url="https://github.com/MeetingLawyers/ios-meeting-podspec.git"/>
+            </config>
+            <pods use-frameworks="true">
+                <pod name="MeetingLawyers" spec="0.1.0" />
+                <!-- <pod name="Alamofire" spec="~> 5.5" /> -->
+
+                <!-- Or install using a Git repository -->
+                <!-- <pod name="Alamofire" options=":git => 'https://github.com/Alamofire/Alamofire.git', :tag => '5.5.0'" /> -->
+                <!-- <pod name="Alamofire" git="https://github.com/Alamofire/Alamofire.git" tag="5.5.0" /> -->
+            </pods>
+        </podspec>
     </platform>
 </plugin>

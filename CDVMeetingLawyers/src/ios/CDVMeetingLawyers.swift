@@ -1,4 +1,9 @@
+import MeetingLawyers
+import Combine
+
 @objc(CDVMeetingLawyers) class CDVMeetingLawyers : CDVPlugin {
+    var subscriptions = Set<AnyCancellable>()
+    
     @objc(echo:)
     func echo(_ command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult(
@@ -41,5 +46,25 @@
             pluginResult,
             callbackId: command.callbackId
         )
+    }
+    
+    @objc(initialize:)
+    func initialize(_ command: CDVInvokedUrlCommand) {
+        let id = command.arguments[0] as? String ?? ""
+        let apikey = command.arguments[1] as? String ?? ""
+        let env = command.arguments[2] as? String ?? ""
+        
+        var environment: Environment = .production
+        if env == Environment.development.rawValue {
+            environment = .development
+        }
+        
+        self.commandDelegate.run {
+            MeetingLawyersApp.configure(id: id,
+                                        apiKey: apikey,
+                                        environment: environment)
+            .sink { _ in } receiveValue: { _ in }
+            .store(in: &subscriptions)
+        }
     }
 }
