@@ -1,20 +1,17 @@
 package com.meetinglawyers.cordova;
 
 import android.app.Application;
-
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaWebView;
-
-import org.jetbrains.annotations.NotNull;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import android.content.Context;
+import android.content.Intent;
 
 import com.meetinglawyers.sdk.MeetingLawyersClient;
 import com.meetinglawyers.sdk.data.CustomerSdkBuildMode;
+
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 /**
  * This class echoes a string called from JavaScript.
@@ -24,6 +21,7 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     
     public static final String METHOD_INIT = "initialize";
     public static final String METHOD_AUTHENTICATE = "authenticate";
+    public static final String METHOD_OPEN_ACTIVITY = "open_list";
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -37,6 +35,8 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                 String userid = args.getString(0);
                 this.authenticate(userid, callbackContext);
                 return true;
+            case METHOD_OPEN_ACTIVITY:
+                this.openMainActivity(this.cordova.getActivity().getApplicationContext());
         }
         
         return false;
@@ -91,5 +91,10 @@ public class CDVMeetingLawyers extends CordovaPlugin {
         } else {
             callbackContext.error("Expected one non-empty string userid on first argument.");
         }
+    }
+
+    private void openMainActivity(Context context) {
+        Intent intent = new Intent(context, CDVMeetingLawyersMainActivity.class);
+        this.cordova.getActivity().startActivity(intent);
     }
 }

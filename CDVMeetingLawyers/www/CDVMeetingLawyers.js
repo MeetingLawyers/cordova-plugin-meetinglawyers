@@ -23,3 +23,7 @@ exports.initialize = function (apikey, env, success, error) {
 exports.authenticate = function (userid, success, error) {
   exec(success, error, "CDVMeetingLawyers", "authenticate", [userid]);
 };
+
+exports.open_list = function (success, error) {
+  exec(success, error, "CDVMeetingLawyers", "open_list", []);
+};
