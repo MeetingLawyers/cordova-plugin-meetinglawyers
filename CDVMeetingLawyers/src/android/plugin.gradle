@@ -1,0 +1,9 @@
+repositories {
+    google()
+    jcenter()
+    maven { url "https://meetinglawyers.jfrog.io/artifactory/Android/" }
+}
+
+dependencies {
+    implementation 'com.meetinglawyers:sdk:1.1.29'
+}

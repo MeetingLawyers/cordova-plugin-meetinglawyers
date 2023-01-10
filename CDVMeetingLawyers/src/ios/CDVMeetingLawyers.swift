@@ -3,6 +3,7 @@ import Combine
 
 @objc(CDVMeetingLawyers) class CDVMeetingLawyers : CDVPlugin {
     var subscriptions = Set<AnyCancellable>()
+    let ENV_DEV = "DEVELOPMENT"
     
     @objc(echo:)
     func echo(_ command: CDVInvokedUrlCommand) {
@@ -50,12 +51,12 @@ import Combine
     
     @objc(initialize:)
     func initialize(_ command: CDVInvokedUrlCommand) {
-        let id = command.arguments[0] as? String ?? ""
-        let apikey = command.arguments[1] as? String ?? ""
-        let env = command.arguments[2] as? String ?? ""
+        let id = "cordova"
+        let apikey = command.arguments[0] as? String ?? ""
+        let env = command.arguments[1] as? String ?? ""
         
         var environment: Environment = .production
-        if env == Environment.development.rawValue {
+        if env == ENV_DEV {
             environment = .development
         }
         

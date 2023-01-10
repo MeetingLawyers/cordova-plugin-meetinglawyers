@@ -17,19 +17,25 @@
         <source-file src="src/ios/CDVMeetingLawyers.swift" />
         <podspec>
             <config>
-                <!-- CocoaPods repositories -->
-                <source url="https://cdn.cocoapods.org/"/>
-                <source url="https://bitbucket.org/meetinglawyers/ios-cocoapods-specs.git"/>
-                <source url="https://github.com/MeetingLawyers/ios-meeting-podspec.git"/>
+                <source url="https://cdn.cocoapods.org/" />
+                <source url="https://bitbucket.org/meetinglawyers/ios-cocoapods-specs.git" />
+                <source url="https://github.com/MeetingLawyers/ios-meeting-podspec.git" />
             </config>
             <pods use-frameworks="true">
                 <pod name="MeetingLawyers" spec="0.1.0" />
-                <!-- <pod name="Alamofire" spec="~> 5.5" /> -->
-
-                <!-- Or install using a Git repository -->
-                <!-- <pod name="Alamofire" options=":git => 'https://github.com/Alamofire/Alamofire.git', :tag => '5.5.0'" /> -->
-                <!-- <pod name="Alamofire" git="https://github.com/Alamofire/Alamofire.git" tag="5.5.0" /> -->
             </pods>
         </podspec>
+    </platform>
+    <platform name="android">
+        <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="CDVMeetingLawyers">
+                <param name="android-package" value="com.meetinglawyers.cordova.CDVMeetingLawyers" />
+                <!-- TODO: Eliminar-->
+                <!-- <param name="onload" value="true" />  -->
+            </feature>
+        </config-file>
+        <config-file parent="/*" target="AndroidManifest.xml"></config-file>
+        <source-file src="src/android/CDVMeetingLawyers.java" target-dir="src/com.meetinglawyers.cordova/CDVMeetingLawyers" />
+        <framework src="src/android/plugin.gradle" custom="true" type="gradleReference"/>
     </platform>
 </plugin>
