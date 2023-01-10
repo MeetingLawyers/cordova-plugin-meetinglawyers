@@ -19,3 +19,7 @@ exports.echojs = function (arg0, success, error) {
 exports.initialize = function (apikey, env, success, error) {
   exec(success, error, "CDVMeetingLawyers", "initialize", [apikey, env]);
 };
+
+exports.authenticate = function (userid, success, error) {
+  exec(success, error, "CDVMeetingLawyers", "authenticate", [userid]);
+};
