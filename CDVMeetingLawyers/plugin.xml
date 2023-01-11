@@ -35,7 +35,7 @@
             </feature>
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
-            <activity android:label="MeetingLawyers Activity" android:name="com.meetinglawyers.cordova.CDVMeetingLawyersMainActivity"></activity>
+            <activity android:label="MeetingLawyers" android:name="com.meetinglawyers.cordova.CDVMeetingLawyersMainActivity"></activity>
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml"></config-file>
         <source-file src="src/android/CDVMeetingLawyers.java" target-dir="src/com/meetinglawyers/cordova" />

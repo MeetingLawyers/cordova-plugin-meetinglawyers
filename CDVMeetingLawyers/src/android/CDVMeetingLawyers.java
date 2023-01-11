@@ -3,6 +3,7 @@ package com.meetinglawyers.cordova;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 
 import com.meetinglawyers.sdk.MeetingLawyersClient;
 import com.meetinglawyers.sdk.data.CustomerSdkBuildMode;
@@ -22,6 +23,8 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     public static final String METHOD_INIT = "initialize";
     public static final String METHOD_AUTHENTICATE = "authenticate";
     public static final String METHOD_OPEN_ACTIVITY = "open_list";
+    public static final String METHOD_PRIMARY_COLOR = "primary_color";
+    public static final String METHOD_SECONDARY_COLOR = "secondary_color";
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -37,6 +40,15 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                 return true;
             case METHOD_OPEN_ACTIVITY:
                 this.openMainActivity(this.cordova.getActivity().getApplicationContext());
+                return true;
+            case METHOD_PRIMARY_COLOR:
+                String primary = args.getString(0);
+                this.setPrimaryColor(primary, callbackContext);
+                return true;
+            case METHOD_SECONDARY_COLOR:
+                String secondary = args.getString(0);
+                this.setSecondaryColor(secondary, callbackContext);
+                return true;
         }
         
         return false;
@@ -96,5 +108,23 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     private void openMainActivity(Context context) {
         Intent intent = new Intent(context, CDVMeetingLawyersMainActivity.class);
         this.cordova.getActivity().startActivity(intent);
+    }
+
+    private void setPrimaryColor(String color, CallbackContext callbackContext) {
+        MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+        if (instance != null) {
+            instance.setPrimaryColor(Color.parseColor(color));
+        } else {
+            callbackContext.error("MeetingLawyers not initialized, call initialize first");
+        }
+    }
+
+    private void setSecondaryColor(String color, CallbackContext callbackContext) {
+        MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+        if (instance != null) {
+            instance.setSecondaryColor(Color.parseColor(color));
+        } else {
+            callbackContext.error("MeetingLawyers not initialized, call initialize first");
+        }
     }
 }
