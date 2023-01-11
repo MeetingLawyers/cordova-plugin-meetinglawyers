@@ -2,8 +2,14 @@ import MeetingLawyers
 import Combine
 
 @objc(CDVMeetingLawyers) class CDVMeetingLawyers : CDVPlugin {
-    var subscriptions = Set<AnyCancellable>()
-    let ENV_DEV = "DEVELOPMENT"
+    var subscriptions:Set<AnyCancellable> = Set<AnyCancellable>()
+    var ENV_DEV: String = ""
+    
+    override func pluginInitialize() {
+        super.pluginInitialize()
+        self.ENV_DEV = "DEVELOPMENT"
+        self.subscriptions = Set<AnyCancellable>()
+    }
     
     @objc(echo:)
     func echo(_ command: CDVInvokedUrlCommand) {
@@ -13,7 +19,7 @@ import Combine
         
         let msg = command.arguments[0] as? String ?? ""
         
-        if msg.characters.count > 0 {
+        if !msg.isEmpty {
             /* UIAlertController is iOS 8 or newer only. */
             let toastController: UIAlertController =
             UIAlertController(
@@ -22,7 +28,7 @@ import Combine
                 preferredStyle: .alert
             )
             
-
+            
             self.viewController?.present(
                 toastController,
                 animated: true,
@@ -56,7 +62,7 @@ import Combine
         let env = command.arguments[1] as? String ?? ""
         
         var environment: Environment = .production
-        if env == ENV_DEV {
+        if env == self.ENV_DEV {
             environment = .development
         }
         
@@ -65,7 +71,7 @@ import Combine
                                         apiKey: apikey,
                                         environment: environment)
             .sink { _ in } receiveValue: { _ in }
-            .store(in: &subscriptions)
+            .store(in: &self.subscriptions)
         }
     }
 }
