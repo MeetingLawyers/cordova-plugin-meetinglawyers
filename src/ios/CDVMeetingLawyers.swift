@@ -1,4 +1,5 @@
 import MeetingLawyers
+import MeetingLawyersSDK
 import Combine
 
 @objc(CDVMeetingLawyers) class CDVMeetingLawyers : CDVPlugin {
@@ -9,50 +10,6 @@ import Combine
         super.pluginInitialize()
         self.ENV_DEV = "DEVELOPMENT"
         self.subscriptions = Set<AnyCancellable>()
-    }
-    
-    @objc(echo:)
-    func echo(_ command: CDVInvokedUrlCommand) {
-        var pluginResult = CDVPluginResult(
-            status: CDVCommandStatus_ERROR
-        )
-        
-        let msg = command.arguments[0] as? String ?? ""
-        
-        if !msg.isEmpty {
-            /* UIAlertController is iOS 8 or newer only. */
-            let toastController: UIAlertController =
-            UIAlertController(
-                title: "",
-                message: msg,
-                preferredStyle: .alert
-            )
-            
-            
-            self.viewController?.present(
-                toastController,
-                animated: true,
-                completion: nil
-            )
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0)
-            {
-                toastController.dismiss(
-                    animated: true,
-                    completion: nil
-                )
-            }
-            
-            pluginResult = CDVPluginResult(
-                status: CDVCommandStatus_OK,
-                messageAs: msg
-            )
-        }
-        
-        self.commandDelegate!.send(
-            pluginResult,
-            callbackId: command.callbackId
-        )
     }
     
     @objc(initialize:)
@@ -70,8 +27,62 @@ import Combine
             MeetingLawyersApp.configure(id: id,
                                         apiKey: apikey,
                                         environment: environment)
-            .sink { _ in } receiveValue: { _ in }
-            .store(in: &self.subscriptions)
+                .sink { result in
+                    if case .finished = result {
+                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+                    } else if case let .failure(error) = result {
+                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+                    }
+                } receiveValue: { _ in }
+                .store(in: &self.subscriptions)
         }
     }
+    
+    @objc(authenticate:)
+    func authenticate(_ command: CDVInvokedUrlCommand) {
+        let userid = command.arguments[0] as? String ?? ""
+        
+        self.commandDelegate.run {
+            MeetingLawyersApp.authenticate(token: userid)
+                .sink { result in
+                    if case .finished = result {
+                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+                    } else if case let .failure(error) = result {
+                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+                    }
+                } receiveValue: { _ in }
+                .store(in: &self.subscriptions)
+        }
+    }
+    
+    @objc(open_list:)
+    func openList(_ command: CDVInvokedUrlCommand) {
+        let messengerResult = MLMediQuo.messengerViewController(showDivider: true)
+        if let mlVC: UINavigationController = messengerResult.value {
+            mlVC.modalPresentationStyle = .fullScreen
+            self.viewController?.present(
+                mlVC,
+                animated: true,
+                completion: nil)
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+            return
+        }
+        
+        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR), callbackId: command.callbackId)
+    }
+    
+    @objc(primary_color:)
+    func primaryColor(_ command: CDVInvokedUrlCommand) {
+        // TODO:
+        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+    }
+    
+    
+    @objc(secondary_color:)
+    func secondaryColor(_ command: CDVInvokedUrlCommand) {
+        // TODO:
+        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+    }
+    
+    
 }
