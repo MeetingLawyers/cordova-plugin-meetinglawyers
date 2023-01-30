@@ -22,7 +22,7 @@
                 <source url="https://github.com/MeetingLawyers/ios-meeting-podspec.git" />
             </config>
             <pods use-frameworks="true">
-                <pod name="MeetingLawyers" spec="0.1.0" />
+                <pod name="MeetingLawyers" spec="0.1.1" />
             </pods>
         </podspec>
     </platform>
