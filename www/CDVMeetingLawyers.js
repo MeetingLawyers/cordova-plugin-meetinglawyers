@@ -8,14 +8,18 @@ exports.authenticate = function (userid, success, error) {
   exec(success, error, "CDVMeetingLawyers", "authenticate", [userid]);
 };
 
-exports.open_list = function (success, error) {
-  exec(success, error, "CDVMeetingLawyers", "open_list", []);
+exports.setFcmToken = function (userid, success, error) {
+  exec(success, error, "CDVMeetingLawyers", "setFcmToken", [userid]);
+};
+
+exports.openList = function (success, error) {
+  exec(success, error, "CDVMeetingLawyers", "openList", []);
 };
 
 exports.primaryColor = function (color) {
-  exec(function() {}, function(error) {}, "CDVMeetingLawyers", "primary_color", [color]);
+  exec(function() {}, function(error) {}, "CDVMeetingLawyers", "primaryColor", [color]);
 };
 
 exports.secondaryColor = function (color) {
-  exec(function() {}, function(error) {}, "CDVMeetingLawyers", "secondary_color", [color]);
+  exec(function() {}, function(error) {}, "CDVMeetingLawyers", "secondaryColor", [color]);
 };

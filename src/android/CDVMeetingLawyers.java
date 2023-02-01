@@ -22,9 +22,10 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     
     public static final String METHOD_INIT = "initialize";
     public static final String METHOD_AUTHENTICATE = "authenticate";
-    public static final String METHOD_OPEN_ACTIVITY = "open_list";
-    public static final String METHOD_PRIMARY_COLOR = "primary_color";
-    public static final String METHOD_SECONDARY_COLOR = "secondary_color";
+    public static final String METHOD_SET_FCM_TOKEN = "setFcmToken";
+    public static final String METHOD_OPEN_ACTIVITY = "openList";
+    public static final String METHOD_PRIMARY_COLOR = "primaryColor";
+    public static final String METHOD_SECONDARY_COLOR = "secondaryColor";
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -37,6 +38,10 @@ public class CDVMeetingLawyers extends CordovaPlugin {
             case METHOD_AUTHENTICATE:
                 String userid = args.getString(0);
                 this.authenticate(userid, callbackContext);
+                return true;
+            case METHOD_SET_FCM_TOKEN:
+                String token = args.getString(0);
+                this.setFCMToken(token, callbackContext);
                 return true;
             case METHOD_OPEN_ACTIVITY:
                 this.openMainActivity(this.cordova.getActivity().getApplicationContext());
@@ -102,6 +107,24 @@ public class CDVMeetingLawyers extends CordovaPlugin {
             });
         } else {
             callbackContext.error("Expected one non-empty string userid on first argument.");
+        }
+    }
+
+    private void setFCMToken(String token, CallbackContext callbackContext) {
+        if (token != null && token.length() > 0) {
+            this.cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+                    if (instance != null) {
+                        instance.onNewTokenReceived(token);
+                        callbackContext.success();
+                    } else {
+                        callbackContext.error("MeetingLawyers not initialized, call initialize first");
+                    }
+                }
+            });
+        } else {
+            callbackContext.error("Expected one non-empty string token on first argument.");
         }
     }
 
