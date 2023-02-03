@@ -54,8 +54,23 @@ import Combine
                 .store(in: &self.subscriptions)
         }
     }
+
+    @objc(setFcmToken:)
+    func setFcmToken(_ command: CDVInvokedUrlCommand) {
+        let token = command.arguments[0] as? String ?? ""
+        
+        self.commandDelegate.run {
+            MLMediQuo.registerFirebaseForNotifications(token: token) { result in
+                result.process(doSuccess: { _ in
+                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+                }, doFailure: { error in
+                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+                })
+            }
+        }
+    }
     
-    @objc(open_list:)
+    @objc(openList:)
     func openList(_ command: CDVInvokedUrlCommand) {
         let messengerResult = MLMediQuo.messengerViewController(showDivider: true)
         if let mlVC: UINavigationController = messengerResult.value {
@@ -71,14 +86,14 @@ import Combine
         self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR), callbackId: command.callbackId)
     }
     
-    @objc(primary_color:)
+    @objc(primaryColor:)
     func primaryColor(_ command: CDVInvokedUrlCommand) {
         // TODO:
         self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
     }
     
     
-    @objc(secondary_color:)
+    @objc(secondaryColor:)
     func secondaryColor(_ command: CDVInvokedUrlCommand) {
         // TODO:
         self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
