@@ -23,6 +23,8 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     public static final String METHOD_INIT = "initialize";
     public static final String METHOD_AUTHENTICATE = "authenticate";
     public static final String METHOD_SET_FCM_TOKEN = "setFcmToken";
+    public static final String METHOD_FCM_MESSAGE = "onFcmMessage";
+    public static final String METHOD_FCM_BACKGROUND_MESSAGE = "onFcmBackgroundMessage";
     public static final String METHOD_OPEN_ACTIVITY = "openList";
     public static final String METHOD_PRIMARY_COLOR = "primaryColor";
     public static final String METHOD_SECONDARY_COLOR = "secondaryColor";
@@ -42,6 +44,11 @@ public class CDVMeetingLawyers extends CordovaPlugin {
             case METHOD_SET_FCM_TOKEN:
                 String token = args.getString(0);
                 this.setFCMToken(token, callbackContext);
+                return true;
+            case METHOD_FCM_MESSAGE:
+            case METHOD_FCM_BACKGROUND_MESSAGE:
+                String dataJson = args.getString(0);
+                this.fcmMessage(dataJson, callbackContext);
                 return true;
             case METHOD_OPEN_ACTIVITY:
                 this.openMainActivity(this.cordova.getActivity().getApplicationContext());
@@ -70,8 +77,6 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                     MeetingLawyersClient.newInstance(((Application) cordova.getContext().getApplicationContext()),
                             apikey,
                             buildMode,
-                            false,
-                            "ENCRYPTION_PASSWORD",
                             cordova.getContext().getResources().getConfiguration().locale);
 
                     callbackContext.success();
@@ -118,6 +123,24 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                     if (instance != null) {
                         instance.onNewTokenReceived(token);
                         callbackContext.success();
+                    } else {
+                        callbackContext.error("MeetingLawyers not initialized, call initialize first");
+                    }
+                }
+            });
+        } else {
+            callbackContext.error("Expected one non-empty string token on first argument.");
+        }
+    }
+
+    private void fcmMessage(String dataJson, CallbackContext callbackContext) {
+        if (dataJson != null && dataJson.length() > 0) {
+            this.cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+                    if (instance != null) {
+                        Boolean handled = instance.onFirebaseMessageReceived(dataJson);
+                        callbackContext.success(handled.toString());
                     } else {
                         callbackContext.error("MeetingLawyers not initialized, call initialize first");
                     }

@@ -12,6 +12,14 @@ exports.setFcmToken = function (userid, success, error) {
   exec(success, error, "CDVMeetingLawyers", "setFcmToken", [userid]);
 };
 
+exports.onFcmMessage = function (data, success, error) {
+  exec(success, error, "CDVMeetingLawyers", "onFcmMessage", [data]);
+};
+
+exports.onFcmBackgroundMessage = function (data, success, error) {
+  exec(success, error, "CDVMeetingLawyers", "onFcmBackgroundMessage", [data]);
+};
+
 exports.openList = function (success, error) {
   exec(success, error, "CDVMeetingLawyers", "openList", []);
 };
