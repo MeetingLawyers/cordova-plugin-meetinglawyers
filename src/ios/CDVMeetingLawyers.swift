@@ -54,6 +54,8 @@ import Combine
                 .store(in: &self.subscriptions)
         }
     }
+    
+    // MARK: - FCM
 
     @objc(setFcmToken:)
     func setFcmToken(_ command: CDVInvokedUrlCommand) {
@@ -69,6 +71,60 @@ import Combine
             }
         }
     }
+    
+    @objc(onFcmMessage:)
+    func onFcmMessage(_ command: CDVInvokedUrlCommand) {
+        let data = command.arguments[0] as? String ?? ""
+        
+        let notificationRequest = self.createNotificationRequest(data)
+        
+        MLMediQuo.userNotificationCenter(UNUserNotificationCenter.current(),
+                                         willPresent: notificationRequest) { result in
+            result.process(doSuccess: { _ in
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: true), callbackId: command.callbackId)
+            }, doFailure: { error in
+                if case MediQuoError.notificationContentNotBelongingToFramework = error {
+                    // No error, push notification not from ML
+                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: false), callbackId: command.callbackId)
+                    return
+                }
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+            })
+        }
+    }
+    
+    @objc(onFcmBackgroundMessage:)
+    func onFcmBackgroundMessage(_ command: CDVInvokedUrlCommand) {
+        let data = command.arguments[0] as? String ?? ""
+        
+        let notificationRequest = self.createNotificationRequest(data)
+        
+        MLMediQuo.userNotificationCenter(UNUserNotificationCenter.current(),
+                                         didReceive: notificationRequest) { result in
+            result.process(doSuccess: { _ in
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: true), callbackId: command.callbackId)
+            }, doFailure: { error in
+                if case MediQuoError.notificationContentNotBelongingToFramework = error {
+                    // No error, push notification not from ML
+                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: false), callbackId: command.callbackId)
+                    return
+                }
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+            })
+        }
+    }
+    
+    private func createNotificationRequest(_ data: String) -> UNNotificationRequest {
+        let content = UNMutableNotificationContent()
+        content.userInfo = ["data" : data]
+        
+        return UNNotificationRequest(identifier: "com.meetinglawyers.cordova",
+                                           content: content,
+                                           trigger: nil)
+    }
+    
+    
+    // END
     
     @objc(openList:)
     func openList(_ command: CDVInvokedUrlCommand) {
