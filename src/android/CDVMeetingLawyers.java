@@ -190,22 +190,4 @@ public class CDVMeetingLawyers extends CordovaPlugin {
             callbackContext.error("MeetingLawyers not initialized, call initialize first");
         }
     }
-
-    private void setPrimaryColor(String color, CallbackContext callbackContext) {
-        MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
-        if (instance != null) {
-            instance.setPrimaryColor(Color.parseColor(color));
-        } else {
-            callbackContext.error("MeetingLawyers not initialized, call initialize first");
-        }
-    }
-
-    private void setSecondaryColor(String color, CallbackContext callbackContext) {
-        MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
-        if (instance != null) {
-            instance.setSecondaryColor(Color.parseColor(color));
-        } else {
-            callbackContext.error("MeetingLawyers not initialized, call initialize first");
-        }
-    }
 }
