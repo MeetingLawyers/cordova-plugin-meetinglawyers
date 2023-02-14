@@ -4,11 +4,21 @@ import Combine
 
 @objc(CDVMeetingLawyers) class CDVMeetingLawyers : CDVPlugin {
     var subscriptions:Set<AnyCancellable> = Set<AnyCancellable>()
+    // Created as var and set in the initialize of the plugin because otherwise the constants do not work
     var ENV_DEV: String = ""
+    var PRIMARY_COLOR: String = ""
+    var SECONDARY_COLOR: String = ""
+    var NAVIGATION_COLOR: String = ""
+    var SPECIALITY_COLOR: String = ""
+    
     
     override func pluginInitialize() {
         super.pluginInitialize()
         self.ENV_DEV = "DEVELOPMENT"
+        self.PRIMARY_COLOR = "primaryColor"
+        self.SECONDARY_COLOR = "secondaryColor"
+        self.NAVIGATION_COLOR = "navigationColor"
+        self.SPECIALITY_COLOR = "specialityColor"
         self.subscriptions = Set<AnyCancellable>()
     }
     
@@ -142,93 +152,97 @@ import Combine
         self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR), callbackId: command.callbackId)
     }
     
-    @objc(primaryColor:)
-    func primaryColor(_ command: CDVInvokedUrlCommand) {
-        let colorString = command.arguments[0] as? String ?? ""
-        let color = UIColor(hex: colorString)
-        let textColor = self.textColor(from: color)
-        
-        let bubbleColor = UIColor(hex: "#E0E0E0")
-        let textBubbleColor = self.textColor(from: bubbleColor)
-        
-        if var style = MLMediQuo.style {
-
-            style.titleColor = textColor
-            style.navigationBarColor = color
-            style.navigationBarTintColor = textColor
-            style.navigationBarOpaque = false
-            style.accentTintColor = color
-            style.preferredStatusBarStyle = self.statusBarStyle(from: color)
-            style.titleFont = UIFont.boldSystemFont(ofSize: 16)
-            style.inboxTitle = nil
-            
-            style.bubbleBackgroundIncomingColor = bubbleColor
-            style.messageTextIncomingColor = textBubbleColor
-            style.bubbleBackgroundOutgoingColor = color
-            style.messageTextOutgoingColor = textColor
-
-            style.inboxCellStyle = MediQuoInboxCellStyle.mediquo(overlay: color.withAlphaComponent(0.2),
-                                                                 badge: color,
-                                                                 speciality: color,
-                                                                 specialityIcon: UIColor.clear,
-                                                                 hideSchedule: false)
-            
-            
-            // MARK: VideoCall
-
-            style.videoCallIconDoctorBackgroundColor = UIColor(hex: "#E8E9E1")
-            style.videoCallBackgroundImage = nil
-            
-            // TOP
-            style.videoCallTopBackgroundColor = color
-            style.videoCallTopBackgroundImageTintColor = nil
-            style.videoCallTitleTextColor = color
-            
-            // BOTTOM
-            style.videoCallBottomBackgroundColor = .white
-            style.videoCallBottomBackgroundImageTintColor = nil
-            style.videoCallNextAppointmentTextColor = .black // waiting videocall next appointment
-            style.videoCallProfessionalNameTextColor = .black // wainting videocall doctor not asigned yet
-            
-            style.videoCallAcceptButtonBackgroundColor = UIColor(red: 3 / 255, green: 243 / 255, blue: 180 / 255, alpha: 1.0)
-            style.videoCallCancelButtonBackgroundColor = UIColor(red: 239 / 255, green: 35 / 255, blue: 54 / 255, alpha: 1.0)
-            style.videoCallCancelButtonTextColor = .white
-            style.videoCallAcceptButtonTextColor = .white
-
-            MLMediQuo.style = style
-        }
-        
-        MLMediQuo.updateStyle()
-        
-        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
-    }
+    // MARK: - STYLE
     
-    
-    @objc(secondaryColor:)
-    func secondaryColor(_ command: CDVInvokedUrlCommand) {
-        let colorString = command.arguments[0] as? String ?? ""
-        let color = UIColor(hex: colorString)
-        let textColor = self.textColor(from: color)
-        
-        if var style = MLMediQuo.style {
-
-            style.secondaryTintColor = color
-            style.videoCallProfessionalSpecialityTextColor = color
+    @objc(setStyle:)
+    func setStyle(_ command: CDVInvokedUrlCommand) {
+        if let style = command.arguments[0] as? NSDictionary,
+           let primaryColorString = style[self.PRIMARY_COLOR] as? String {
             
-            let primary: UIColor = style.navigationBarColor ?? color
+            let primaryColor = UIColor(hex: primaryColorString)
+            let textPrimaryColor = self.textColor(from: primaryColor)
             
-            style.inboxCellStyle = MediQuoInboxCellStyle.mediquo(overlay: primary.withAlphaComponent(0.2),
-                                                                 badge: color,
-                                                                 speciality: color,
-                                                                 specialityIcon: UIColor.clear,
-                                                                 hideSchedule: false)
+            var secondaryColor = primaryColor
+            var textSecondaryColor = textPrimaryColor
+            var navigationColor = primaryColor
+            var textNavigationColor = textPrimaryColor
+            var specialityColor = primaryColor
+            var textSpecialityColor = textPrimaryColor
+            
+            // Override secondary color
+            if let secondaryColorString = style[self.SECONDARY_COLOR] as? String {
+                secondaryColor = UIColor(hex: secondaryColorString)
+                textSecondaryColor = self.textColor(from: secondaryColor)
+            }
+            // Override navigation color
+            if let navigationColorString = style[self.NAVIGATION_COLOR] as? String {
+                navigationColor = UIColor(hex: navigationColorString)
+                textNavigationColor = self.textColor(from: navigationColor)
+            }
+            // Override speciality color
+            if let specialityColorString = style[self.SPECIALITY_COLOR] as? String {
+                specialityColor = UIColor(hex: specialityColorString)
+                textSpecialityColor = self.textColor(from: specialityColor)
+            }
+            
+            let bubbleColor = UIColor(hex: "#E0E0E0")
+            let textBubbleColor = self.textColor(from: bubbleColor)
+            
+            if var style = MLMediQuo.style {
 
-            MLMediQuo.style = style
+                style.titleColor = textNavigationColor
+                style.navigationBarColor = navigationColor
+                style.navigationBarTintColor = textNavigationColor
+                style.navigationBarOpaque = false
+                style.accentTintColor = primaryColor
+                style.preferredStatusBarStyle = self.statusBarStyle(from: navigationColor)
+                style.titleFont = UIFont.boldSystemFont(ofSize: 16)
+                style.inboxTitle = nil
+                
+                style.bubbleBackgroundIncomingColor = bubbleColor
+                style.messageTextIncomingColor = textBubbleColor
+                style.bubbleBackgroundOutgoingColor = primaryColor
+                style.messageTextOutgoingColor = textPrimaryColor
+                style.secondaryTintColor = secondaryColor
+
+                style.inboxCellStyle = MediQuoInboxCellStyle.mediquo(overlay: primaryColor.withAlphaComponent(0.2),
+                                                                     badge: secondaryColor,
+                                                                     speciality: specialityColor,
+                                                                     specialityIcon: UIColor.clear,
+                                                                     hideSchedule: false)
+                
+                
+                // MARK: VideoCall
+
+                style.videoCallIconDoctorBackgroundColor = UIColor(hex: "#E8E9E1")
+                style.videoCallBackgroundImage = nil
+                
+                // TOP
+                style.videoCallTopBackgroundColor = primaryColor
+                style.videoCallTopBackgroundImageTintColor = nil
+                style.videoCallTitleTextColor = textPrimaryColor
+                
+                // BOTTOM
+                style.videoCallBottomBackgroundColor = .white
+                style.videoCallBottomBackgroundImageTintColor = nil
+                style.videoCallNextAppointmentTextColor = .black // waiting videocall next appointment
+                style.videoCallProfessionalNameTextColor = .black // wainting videocall doctor not asigned yet
+                style.videoCallProfessionalSpecialityTextColor = specialityColor
+                
+                style.videoCallAcceptButtonBackgroundColor = UIColor(red: 3 / 255, green: 243 / 255, blue: 180 / 255, alpha: 1.0)
+                style.videoCallCancelButtonBackgroundColor = UIColor(red: 239 / 255, green: 35 / 255, blue: 54 / 255, alpha: 1.0)
+                style.videoCallCancelButtonTextColor = .white
+                style.videoCallAcceptButtonTextColor = .white
+
+                MLMediQuo.style = style
+            }
+            
+            MLMediQuo.updateStyle()
+            
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+        } else {
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR), callbackId: command.callbackId)
         }
-        
-        MLMediQuo.updateStyle()
-        
-        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
     }
     
     private func textColor(from color: UIColor) -> UIColor {
@@ -238,4 +252,6 @@ import Combine
     private func statusBarStyle(from color: UIColor) -> UIStatusBarStyle {
         return color.isLight ? .darkContent : .lightContent
     }
+    
+    // END
 }

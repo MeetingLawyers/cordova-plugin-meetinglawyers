@@ -13,12 +13,18 @@ import org.apache.cordova.CordovaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * This class echoes a string called from JavaScript.
  */
 public class CDVMeetingLawyers extends CordovaPlugin {
     public static final String ENV_DEV = "DEVELOPMENT";
+
+    public static final String STYLE_PRIMARY_COLOR = "primaryColor";
+    public static final String STYLE_SECONDARY_COLOR = "secondaryColor";
+    public static final String STYLE_NAVIGATION_COLOR = "navigationColor";
+    public static final String STYLE_SPECIALITY_COLOR = "specialityColor";
     
     public static final String METHOD_INIT = "initialize";
     public static final String METHOD_AUTHENTICATE = "authenticate";
@@ -26,8 +32,7 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     public static final String METHOD_FCM_MESSAGE = "onFcmMessage";
     public static final String METHOD_FCM_BACKGROUND_MESSAGE = "onFcmBackgroundMessage";
     public static final String METHOD_OPEN_ACTIVITY = "openList";
-    public static final String METHOD_PRIMARY_COLOR = "primaryColor";
-    public static final String METHOD_SECONDARY_COLOR = "secondaryColor";
+    public static final String METHOD_SET_STYLE = "setStyle";
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -53,13 +58,9 @@ public class CDVMeetingLawyers extends CordovaPlugin {
             case METHOD_OPEN_ACTIVITY:
                 this.openMainActivity(this.cordova.getActivity().getApplicationContext());
                 return true;
-            case METHOD_PRIMARY_COLOR:
-                String primary = args.getString(0);
-                this.setPrimaryColor(primary, callbackContext);
-                return true;
-            case METHOD_SECONDARY_COLOR:
-                String secondary = args.getString(0);
-                this.setSecondaryColor(secondary, callbackContext);
+            case METHOD_SET_STYLE:
+                JSONObject style = args.getJSONObject(0);
+                this.setStyle(style, callbackContext);
                 return true;
         }
         
@@ -154,6 +155,40 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     private void openMainActivity(Context context) {
         Intent intent = new Intent(context, CDVMeetingLawyersMainActivity.class);
         this.cordova.getActivity().startActivity(intent);
+    }
+
+    private void setStyle(JSONObject style, CallbackContext callbackContext) throws JSONException {
+        MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+        if (instance != null) {
+            if (style.has(STYLE_PRIMARY_COLOR)) {
+                String primaryColor = style.getString(STYLE_PRIMARY_COLOR);
+                instance.setPrimaryColor(Color.parseColor(primaryColor));
+                // Secondary color
+                if (style.has(STYLE_SECONDARY_COLOR)) {
+                    String secondaryColor = style.getString(STYLE_SECONDARY_COLOR);
+                    instance.setSecondaryColor(Color.parseColor(secondaryColor));
+                } else {
+                    instance.setSecondaryColor(Color.parseColor(primaryColor));
+                }
+                // Navigation color
+                if (style.has(STYLE_NAVIGATION_COLOR)) {
+                    String navigationColor = style.getString(STYLE_NAVIGATION_COLOR);
+                    // instance.setcolor(Color.parseColor(secondaryColor));
+                } else {
+                    // instance.setSecondaryColor(Color.parseColor(primaryColor));
+                }
+                // Speciality color
+                if (style.has(STYLE_SPECIALITY_COLOR)) {
+                    String specialityColor = style.getString(STYLE_SPECIALITY_COLOR);
+                    instance.setProfessionalSpecialityTextColor(Color.parseColor(specialityColor));
+                } else {
+                    instance.setProfessionalSpecialityTextColor(Color.parseColor(primaryColor));
+                }
+            }
+            callbackContext.success();
+        } else {
+            callbackContext.error("MeetingLawyers not initialized, call initialize first");
+        }
     }
 
     private void setPrimaryColor(String color, CallbackContext callbackContext) {
