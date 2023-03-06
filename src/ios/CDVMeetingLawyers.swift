@@ -252,6 +252,39 @@ import Combine
     private func statusBarStyle(from color: UIColor) -> UIStatusBarStyle {
         return color.isLight ? .darkContent : .lightContent
     }
+
+    @objc(setNavigationImage:)
+    func setNavigationImage(_ command: CDVInvokedUrlCommand) {
+        let imageName = command.arguments[0] as? String ?? ""
+        if let image = UIImage(named: imageName),
+            image.size.height != 0 {
+            // Default frame
+            let titleViewFrame = CGRect(x: 0, y: 0, width: 390, height: 44)
+            
+            // Create views
+            let imageView = UIImageView(image: image)
+            let containerView = UIView(frame: titleViewFrame)
+            containerView.addSubview(imageView)
+            // Configure title aspect and style
+            imageView.contentMode = .scaleAspectFit
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            // Constraint image position inside title view
+            containerView.addConstraint(NSLayoutConstraint(item: imageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: titleViewFrame.height - 10))
+            containerView.addConstraint(NSLayoutConstraint(item: imageView, attribute: .centerX, relatedBy: .equal, toItem: containerView, attribute: .centerX, multiplier: 1, constant: 0))
+            containerView.addConstraint(NSLayoutConstraint(item: imageView, attribute: .centerY, relatedBy: .equal, toItem: containerView, attribute: .centerY, multiplier: 1, constant: 0))
+            
+            if var style = MLMediQuo.style {
+                style.titleView = containerView
+                MLMediQuo.style = style
+            }
+
+            MLMediQuo.updateStyle()
+
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+        } else {
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid image path: \(imageName)"), callbackId: command.callbackId)
+        }
+    }
     
     // END
 }

@@ -28,3 +28,7 @@ exports.setStyle = function(style) {
   exec(function() {}, function(error) {}, "CDVMeetingLawyers", "setStyle", [style]);
 }
 
+exports.setNavigationImage = function(imageName) {
+  exec(function() {}, function(error) {}, "CDVMeetingLawyers", "setNavigationImage", [imageName]);
+}
+

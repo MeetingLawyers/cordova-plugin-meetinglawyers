@@ -33,6 +33,10 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     public static final String METHOD_FCM_BACKGROUND_MESSAGE = "onFcmBackgroundMessage";
     public static final String METHOD_OPEN_ACTIVITY = "openList";
     public static final String METHOD_SET_STYLE = "setStyle";
+    public static final String METHOD_SET_NAVIGATION = "setNavigationImage";
+
+    private int primaryColor;
+    private String navigationImageName;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -61,6 +65,10 @@ public class CDVMeetingLawyers extends CordovaPlugin {
             case METHOD_SET_STYLE:
                 JSONObject style = args.getJSONObject(0);
                 this.setStyle(style, callbackContext);
+                return true;
+            case METHOD_SET_NAVIGATION:
+                String imageName = args.getString(0);
+                this.setNavigationImage(imageName, callbackContext);
                 return true;
         }
         
@@ -154,6 +162,8 @@ public class CDVMeetingLawyers extends CordovaPlugin {
 
     private void openMainActivity(Context context) {
         Intent intent = new Intent(context, CDVMeetingLawyersMainActivity.class);
+        intent.putExtra(CDVMeetingLawyersMainActivity.PRIMARY_COLOR, primaryColor);
+        intent.putExtra(CDVMeetingLawyersMainActivity.NAVIGATION_NAME, navigationImageName);
         this.cordova.getActivity().startActivity(intent);
     }
 
@@ -162,7 +172,8 @@ public class CDVMeetingLawyers extends CordovaPlugin {
         if (instance != null) {
             if (style.has(STYLE_PRIMARY_COLOR)) {
                 String primaryColor = style.getString(STYLE_PRIMARY_COLOR);
-                instance.setPrimaryColor(Color.parseColor(primaryColor));
+                this.primaryColor = Color.parseColor(primaryColor);
+                instance.setPrimaryColor(this.primaryColor);
                 // Secondary color
                 if (style.has(STYLE_SECONDARY_COLOR)) {
                     String secondaryColor = style.getString(STYLE_SECONDARY_COLOR);
@@ -186,6 +197,20 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                 }
             }
             callbackContext.success();
+        } else {
+            callbackContext.error("MeetingLawyers not initialized, call initialize first");
+        }
+    }
+
+    private void setNavigationImage(String imageName, CallbackContext callbackContext) {
+        MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+        if (instance != null) {
+            if (imageName != null && imageName.length() > 0) {
+                this.navigationImageName = imageName;
+                callbackContext.success();
+            } else {
+                callbackContext.error("Expected one non-empty string token on first argument.");
+            }
         } else {
             callbackContext.error("MeetingLawyers not initialized, call initialize first");
         }
