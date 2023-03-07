@@ -33,6 +33,11 @@ import Combine
             environment = .development
         }
         
+        if apikey.isEmpty {
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error empty api_key"), callbackId: command.callbackId)
+            return
+        }
+        
         self.commandDelegate.run {
             MeetingLawyersApp.configure(id: id,
                                         apiKey: apikey,
@@ -51,6 +56,11 @@ import Combine
     @objc(authenticate:)
     func authenticate(_ command: CDVInvokedUrlCommand) {
         let userid = command.arguments[0] as? String ?? ""
+        
+        if userid.isEmpty {
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error empty userid"), callbackId: command.callbackId)
+            return
+        }
         
         self.commandDelegate.run {
             MeetingLawyersApp.authenticate(token: userid)
@@ -71,6 +81,11 @@ import Combine
     func setFcmToken(_ command: CDVInvokedUrlCommand) {
         let token = command.arguments[0] as? String ?? ""
         
+        if token.isEmpty {
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error empty token"), callbackId: command.callbackId)
+            return
+        }
+        
         self.commandDelegate.run {
             MLMediQuo.registerFirebaseForNotifications(token: token) { result in
                 result.process(doSuccess: { _ in
@@ -85,6 +100,11 @@ import Combine
     @objc(onFcmMessage:)
     func onFcmMessage(_ command: CDVInvokedUrlCommand) {
         let data = command.arguments[0] as? String ?? ""
+        
+        if data.isEmpty {
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error empty data"), callbackId: command.callbackId)
+            return
+        }
         
         let notificationRequest = self.createNotificationRequest(data)
         
@@ -106,6 +126,11 @@ import Combine
     @objc(onFcmBackgroundMessage:)
     func onFcmBackgroundMessage(_ command: CDVInvokedUrlCommand) {
         let data = command.arguments[0] as? String ?? ""
+        
+        if data.isEmpty {
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error empty data"), callbackId: command.callbackId)
+            return
+        }
         
         let notificationRequest = self.createNotificationRequest(data)
         
