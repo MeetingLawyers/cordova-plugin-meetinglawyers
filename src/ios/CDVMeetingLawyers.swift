@@ -1,6 +1,7 @@
 import MeetingLawyers
 import MeetingLawyersSDK
 import Combine
+import UIKit
 
 @objc(CDVMeetingLawyers) class CDVMeetingLawyers : CDVPlugin {
     var subscriptions:Set<AnyCancellable> = Set<AnyCancellable>()
@@ -163,6 +164,7 @@ import Combine
     
     @objc(openList:)
     func openList(_ command: CDVInvokedUrlCommand) {
+        self.setBackButton()
         let messengerResult = MLMediQuo.messengerViewController(showDivider: true)
         if let mlVC: UINavigationController = messengerResult.value {
             mlVC.modalPresentationStyle = .fullScreen
@@ -175,6 +177,22 @@ import Combine
         }
         
         self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR), callbackId: command.callbackId)
+    }
+    
+    private func setBackButton() {
+        if var style = MLMediQuo.style {
+            if let image = UIImage(systemName: "chevron.backward") {
+                style.rootLeftBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(self.dismiss))
+            } else {
+                style.rootLeftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(self.dismiss))
+            }
+            MLMediQuo.style = style
+        }
+    }
+    
+    @objc
+    func dismiss() {
+        self.viewController?.dismiss(animated: true)
     }
     
     // MARK: - STYLE
