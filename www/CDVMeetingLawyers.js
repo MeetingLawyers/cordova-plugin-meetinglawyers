@@ -8,6 +8,10 @@ exports.authenticate = function (userid, success, error) {
   exec(success, error, "CDVMeetingLawyers", "authenticate", [userid]);
 };
 
+exports.logout = function (success, error) {
+  exec(success, error, "CDVMeetingLawyers", "logout", []);
+};
+
 exports.setFcmToken = function (userid, success, error) {
   exec(success, error, "CDVMeetingLawyers", "setFcmToken", [userid]);
 };

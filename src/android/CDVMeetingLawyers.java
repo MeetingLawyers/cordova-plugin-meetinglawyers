@@ -7,6 +7,7 @@ import android.graphics.Color;
 
 import com.meetinglawyers.sdk.MeetingLawyersClient;
 import com.meetinglawyers.sdk.data.CustomerSdkBuildMode;
+import com.meetinglawyers.sdk.data.Repository;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -28,14 +29,13 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     
     public static final String METHOD_INIT = "initialize";
     public static final String METHOD_AUTHENTICATE = "authenticate";
+    public static final String METHOD_LOGOUT = "logout";
     public static final String METHOD_SET_FCM_TOKEN = "setFcmToken";
     public static final String METHOD_FCM_MESSAGE = "onFcmMessage";
     public static final String METHOD_FCM_BACKGROUND_MESSAGE = "onFcmBackgroundMessage";
     public static final String METHOD_OPEN_ACTIVITY = "openList";
     public static final String METHOD_SET_STYLE = "setStyle";
     public static final String METHOD_SET_NAVIGATION = "setNavigationImage";
-
-    private int primaryColor;
     private String navigationImageName;
 
     @Override
@@ -50,6 +50,9 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                 String userid = args.getString(0);
                 this.authenticate(userid, callbackContext);
                 return true;
+            case METHOD_LOGOUT:
+                this.logout(callbackContext);
+                return true;
             case METHOD_SET_FCM_TOKEN:
                 String token = args.getString(0);
                 this.setFCMToken(token, callbackContext);
@@ -60,7 +63,7 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                 this.fcmMessage(dataJson, callbackContext);
                 return true;
             case METHOD_OPEN_ACTIVITY:
-                this.openMainActivity(this.cordova.getActivity().getApplicationContext());
+                this.openMainActivity(callbackContext);
                 return true;
             case METHOD_SET_STYLE:
                 JSONObject style = args.getJSONObject(0);
@@ -124,6 +127,29 @@ public class CDVMeetingLawyers extends CordovaPlugin {
         }
     }
 
+    private void logout(CallbackContext callbackContext) {
+        this.cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+                if (instance != null) {
+                    instance.deauthenticate(new Repository.OnResetDataListener() {
+                        @Override
+                        public void onSuccess() {
+                            callbackContext.success();
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            callbackContext.error("MeetingLawyers deauthenticate fails");
+                        }
+                    });
+                } else {
+                    callbackContext.error("MeetingLawyers not initialized, call initialize first");
+                }
+            }
+        });
+    }
+
     private void setFCMToken(String token, CallbackContext callbackContext) {
         if (token != null && token.length() > 0) {
             this.cordova.getThreadPool().execute(new Runnable() {
@@ -160,11 +186,14 @@ public class CDVMeetingLawyers extends CordovaPlugin {
         }
     }
 
-    private void openMainActivity(Context context) {
-        Intent intent = new Intent(context, CDVMeetingLawyersMainActivity.class);
-        intent.putExtra(CDVMeetingLawyersMainActivity.PRIMARY_COLOR, primaryColor);
-        intent.putExtra(CDVMeetingLawyersMainActivity.NAVIGATION_NAME, navigationImageName);
-        this.cordova.getActivity().startActivity(intent);
+    private void openMainActivity(CallbackContext callbackContext) {
+        MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+        if (instance != null) {
+            int navigationResourceId = this.cordova.getActivity().getApplication().getResources().getIdentifier(navigationImageName, "drawable", this.cordova.getActivity().getApplication().getPackageName());
+            instance.launchProfessionalList(this.cordova.getContext(), navigationResourceId);
+        } else {
+            callbackContext.error("MeetingLawyers not initialized, call initialize first");
+        }
     }
 
     private void setStyle(JSONObject style, CallbackContext callbackContext) throws JSONException {
@@ -172,8 +201,7 @@ public class CDVMeetingLawyers extends CordovaPlugin {
         if (instance != null) {
             if (style.has(STYLE_PRIMARY_COLOR)) {
                 String primaryColor = style.getString(STYLE_PRIMARY_COLOR);
-                this.primaryColor = Color.parseColor(primaryColor);
-                instance.setPrimaryColor(this.primaryColor);
+                instance.setPrimaryColor(Color.parseColor(primaryColor));
                 // Secondary color
                 if (style.has(STYLE_SECONDARY_COLOR)) {
                     String secondaryColor = style.getString(STYLE_SECONDARY_COLOR);

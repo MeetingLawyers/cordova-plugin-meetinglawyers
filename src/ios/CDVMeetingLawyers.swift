@@ -76,6 +76,21 @@ import UIKit
         }
     }
     
+    @objc(logout:)
+    func logout(_ command: CDVInvokedUrlCommand) {
+        self.commandDelegate.run {
+            MeetingLawyersApp.logout()
+                .sink { result in
+                    if case .finished = result {
+                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+                    } else if case let .failure(error) = result {
+                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+                    }
+                } receiveValue: { _ in }
+                .store(in: &self.subscriptions)
+        }
+    }
+    
     // MARK: - FCM
 
     @objc(setFcmToken:)

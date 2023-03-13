@@ -35,12 +35,9 @@
             </feature>
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
-            <activity android:label="MeetingLawyers" android:name="com.meetinglawyers.cordova.CDVMeetingLawyersMainActivity" android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml"></config-file>
         <source-file src="src/android/CDVMeetingLawyers.java" target-dir="src/com/meetinglawyers/cordova" />
-        <source-file src="src/android/CDVMeetingLawyersMainActivity.java" target-dir="src/com/meetinglawyers/cordova" />
-        <source-file src="src/android/activity_meetinglawyers_main.xml" target-dir="res/layout"/>
 
         <framework src="src/android/plugin.gradle" custom="true" type="gradleReference"/>
     </platform>
