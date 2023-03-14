@@ -191,6 +191,7 @@ public class CDVMeetingLawyers extends CordovaPlugin {
         if (instance != null) {
             int navigationResourceId = this.cordova.getActivity().getApplication().getResources().getIdentifier(navigationImageName, "drawable", this.cordova.getActivity().getApplication().getPackageName());
             instance.launchProfessionalList(this.cordova.getContext(), navigationResourceId);
+            callbackContext.success();
         } else {
             callbackContext.error("MeetingLawyers not initialized, call initialize first");
         }
