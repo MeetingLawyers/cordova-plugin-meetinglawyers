@@ -26,7 +26,7 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     public static final String STYLE_SECONDARY_COLOR = "secondaryColor";
     public static final String STYLE_NAVIGATION_COLOR = "navigationColor";
     public static final String STYLE_SPECIALITY_COLOR = "specialityColor";
-    
+
     public static final String METHOD_INIT = "initialize";
     public static final String METHOD_AUTHENTICATE = "authenticate";
     public static final String METHOD_LOGOUT = "logout";
@@ -58,9 +58,12 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                 this.setFCMToken(token, callbackContext);
                 return true;
             case METHOD_FCM_MESSAGE:
-            case METHOD_FCM_BACKGROUND_MESSAGE:
                 String dataJson = args.getString(0);
                 this.fcmMessage(dataJson, callbackContext);
+                return true;
+            case METHOD_FCM_BACKGROUND_MESSAGE:
+                String dataBackJson = args.getString(0);
+                this.fcmBackgroundMessage(dataBackJson, callbackContext);
                 return true;
             case METHOD_OPEN_ACTIVITY:
                 this.openMainActivity(callbackContext);
@@ -74,7 +77,7 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                 this.setNavigationImage(imageName, callbackContext);
                 return true;
         }
-        
+
         return false;
     }
 
@@ -176,6 +179,24 @@ public class CDVMeetingLawyers extends CordovaPlugin {
                     if (instance != null) {
                         Boolean handled = instance.onFirebaseMessageReceived(dataJson);
                         callbackContext.success(handled.toString());
+                    } else {
+                        callbackContext.error("MeetingLawyers not initialized, call initialize first");
+                    }
+                }
+            });
+        } else {
+            callbackContext.error("Expected one non-empty string token on first argument.");
+        }
+    }
+
+    private void fcmBackgroundMessage(String dataJson, CallbackContext callbackContext) {
+        if (dataJson != null && dataJson.length() > 0) {
+            this.cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
+                    if (instance != null) {
+                        instance.onNotificationDataReceived(dataJson);
+                        callbackContext.success(Boolean.toString(true));
                     } else {
                         callbackContext.error("MeetingLawyers not initialized, call initialize first");
                     }
