@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="com-meetinglawyers-cordova" version="1.0.0"
+<plugin id="com-meetinglawyers-cordova" version="1.0.1"
     xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <name>MeetingLawyers</name>
@@ -16,7 +16,6 @@
         </config-file>
         <source-file src="src/ios/CDVMeetingLawyers.swift" />
         <source-file src="src/ios/UIColor+Hex.swift" />
-        <source-file src="src/ios/UIColor+Luminance.swift" />
         <podspec>
             <config>
                 <source url="https://cdn.cocoapods.org/" />
@@ -24,7 +23,7 @@
                 <source url="https://github.com/MeetingLawyers/ios-meeting-podspec.git" />
             </config>
             <pods use-frameworks="true">
-                <pod name="MeetingLawyers" spec="0.1.3" />
+                <pod name="MeetingLawyers" spec="0.2.2" />
             </pods>
         </podspec>
     </platform>

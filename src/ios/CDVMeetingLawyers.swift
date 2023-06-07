@@ -25,7 +25,6 @@ import UIKit
     
     @objc(initialize:)
     func initialize(_ command: CDVInvokedUrlCommand) {
-        let id = "cordova"
         let apikey = command.arguments[0] as? String ?? ""
         let env = command.arguments[1] as? String ?? ""
         
@@ -40,17 +39,14 @@ import UIKit
         }
         
         self.commandDelegate.run {
-            MeetingLawyersApp.configure(id: id,
-                                        apiKey: apikey,
-                                        environment: environment)
-                .sink { result in
-                    if case .finished = result {
-                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
-                    } else if case let .failure(error) = result {
-                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
-                    }
-                } receiveValue: { _ in }
-                .store(in: &self.subscriptions)
+            MeetingLawyersApp.configure(apiKey: apikey,
+                                        environment: environment) { error in
+                if let error = error {
+                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+                    return
+                }
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+            }
         }
     }
     
@@ -64,30 +60,26 @@ import UIKit
         }
         
         self.commandDelegate.run {
-            MeetingLawyersApp.authenticate(token: userid)
-                .sink { result in
-                    if case .finished = result {
-                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
-                    } else if case let .failure(error) = result {
-                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
-                    }
-                } receiveValue: { _ in }
-                .store(in: &self.subscriptions)
+            MeetingLawyersApp.authenticate(userId: userid) { error in
+                if let error = error {
+                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+                    return
+                }
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+            }
         }
     }
     
     @objc(logout:)
     func logout(_ command: CDVInvokedUrlCommand) {
         self.commandDelegate.run {
-            MeetingLawyersApp.logout()
-                .sink { result in
-                    if case .finished = result {
-                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
-                    } else if case let .failure(error) = result {
-                        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
-                    }
-                } receiveValue: { _ in }
-                .store(in: &self.subscriptions)
+            MeetingLawyersApp.logout { error in
+                if let error = error {
+                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
+                    return
+                }
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
+            }
         }
     }
     
@@ -103,12 +95,12 @@ import UIKit
         }
         
         self.commandDelegate.run {
-            MLMediQuo.registerFirebaseForNotifications(token: token) { result in
-                result.process(doSuccess: { _ in
-                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
-                }, doFailure: { error in
+            MeetingLawyersApp.setFirebaseMessagingToken(token: token) { error in
+                if let error = error {
                     self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
-                })
+                    return
+                }
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
             }
         }
     }
@@ -123,19 +115,15 @@ import UIKit
         }
         
         let notificationRequest = self.createNotificationRequest(data)
-        
-        MLMediQuo.userNotificationCenter(UNUserNotificationCenter.current(),
-                                         willPresent: notificationRequest) { result in
-            result.process(doSuccess: { _ in
-                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: true), callbackId: command.callbackId)
-            }, doFailure: { error in
-                if case MediQuoError.notificationContentNotBelongingToFramework = error {
-                    // No error, push notification not from ML
-                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: false), callbackId: command.callbackId)
-                    return
-                }
-                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
-            })
+
+        let handled = MeetingLawyersApp.userNotificationCenter(willPresent: notificationRequest) { options in
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: true), callbackId: command.callbackId)
+        }
+
+        if !handled {
+            // No error, push notification not from ML
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: false), callbackId: command.callbackId)
+            return
         }
     }
     
@@ -149,19 +137,19 @@ import UIKit
         }
         
         let notificationRequest = self.createNotificationRequest(data)
-        
-        MLMediQuo.userNotificationCenter(UNUserNotificationCenter.current(),
-                                         didReceive: notificationRequest) { result in
-            result.process(doSuccess: { _ in
-                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: true), callbackId: command.callbackId)
-            }, doFailure: { error in
-                if case MediQuoError.notificationContentNotBelongingToFramework = error {
-                    // No error, push notification not from ML
-                    self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: false), callbackId: command.callbackId)
-                    return
-                }
+
+        let handled = MeetingLawyersApp.userNotificationCenter(didReceive: notificationRequest) { error in
+            if let error = error {
                 self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription), callbackId: command.callbackId)
-            })
+            } else {
+                self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: true), callbackId: command.callbackId)
+            }
+        }
+
+        if !handled {
+            // No error, push notification not from ML
+            self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: false), callbackId: command.callbackId)
+            return
         }
     }
     
@@ -180,11 +168,10 @@ import UIKit
     @objc(openList:)
     func openList(_ command: CDVInvokedUrlCommand) {
         self.setBackButton()
-        let messengerResult = MLMediQuo.messengerViewController(showDivider: true)
-        if let mlVC: UINavigationController = messengerResult.value {
-            mlVC.modalPresentationStyle = .fullScreen
+        if let professionalList = MeetingLawyersApp.professionalListViewController() {
+            professionalList.modalPresentationStyle = .fullScreen
             self.viewController?.present(
-                mlVC,
+                professionalList,
                 animated: true,
                 completion: nil)
             self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
@@ -218,97 +205,28 @@ import UIKit
            let primaryColorString = style[self.PRIMARY_COLOR] as? String {
             
             let primaryColor = UIColor(hex: primaryColorString)
-            let textPrimaryColor = self.textColor(from: primaryColor)
-            
-            var secondaryColor = primaryColor
-            var textSecondaryColor = textPrimaryColor
-            var navigationColor = primaryColor
-            var textNavigationColor = textPrimaryColor
-            var specialityColor = primaryColor
-            var textSpecialityColor = textPrimaryColor
+            MeetingLawyersApp.setStyle(primaryColor: primaryColor)
             
             // Override secondary color
             if let secondaryColorString = style[self.SECONDARY_COLOR] as? String {
-                secondaryColor = UIColor(hex: secondaryColorString)
-                textSecondaryColor = self.textColor(from: secondaryColor)
+                let secondaryColor = UIColor(hex: secondaryColorString)
+                MeetingLawyersApp.setStyle(secondaryColor: secondaryColor)
             }
             // Override navigation color
             if let navigationColorString = style[self.NAVIGATION_COLOR] as? String {
-                navigationColor = UIColor(hex: navigationColorString)
-                textNavigationColor = self.textColor(from: navigationColor)
+                let navigationColor = UIColor(hex: navigationColorString)
+                MeetingLawyersApp.setStyle(navigationColor: navigationColor)
             }
             // Override speciality color
             if let specialityColorString = style[self.SPECIALITY_COLOR] as? String {
-                specialityColor = UIColor(hex: specialityColorString)
-                textSpecialityColor = self.textColor(from: specialityColor)
+                let specialityColor = UIColor(hex: specialityColorString)
+                MeetingLawyersApp.setStyle(specialityColor: specialityColor)
             }
-            
-            let bubbleColor = UIColor(hex: "#E0E0E0")
-            let textBubbleColor = self.textColor(from: bubbleColor)
-            
-            if var style = MLMediQuo.style {
-
-                style.titleColor = textNavigationColor
-                style.navigationBarColor = navigationColor
-                style.navigationBarTintColor = textNavigationColor
-                style.navigationBarOpaque = false
-                style.accentTintColor = primaryColor
-                style.preferredStatusBarStyle = self.statusBarStyle(from: navigationColor)
-                style.titleFont = UIFont.boldSystemFont(ofSize: 16)
-                style.inboxTitle = nil
-                
-                style.bubbleBackgroundIncomingColor = bubbleColor
-                style.messageTextIncomingColor = textBubbleColor
-                style.bubbleBackgroundOutgoingColor = primaryColor
-                style.messageTextOutgoingColor = textPrimaryColor
-                style.secondaryTintColor = secondaryColor
-
-                style.inboxCellStyle = MediQuoInboxCellStyle.mediquo(overlay: primaryColor.withAlphaComponent(0.2),
-                                                                     badge: secondaryColor,
-                                                                     speciality: specialityColor,
-                                                                     specialityIcon: UIColor.clear,
-                                                                     hideSchedule: false)
-                
-                
-                // MARK: VideoCall
-
-                style.videoCallIconDoctorBackgroundColor = UIColor(hex: "#E8E9E1")
-                style.videoCallBackgroundImage = nil
-                
-                // TOP
-                style.videoCallTopBackgroundColor = primaryColor
-                style.videoCallTopBackgroundImageTintColor = nil
-                style.videoCallTitleTextColor = textPrimaryColor
-                
-                // BOTTOM
-                style.videoCallBottomBackgroundColor = .white
-                style.videoCallBottomBackgroundImageTintColor = nil
-                style.videoCallNextAppointmentTextColor = .black // waiting videocall next appointment
-                style.videoCallProfessionalNameTextColor = .black // wainting videocall doctor not asigned yet
-                style.videoCallProfessionalSpecialityTextColor = specialityColor
-                
-                style.videoCallAcceptButtonBackgroundColor = UIColor(red: 3 / 255, green: 243 / 255, blue: 180 / 255, alpha: 1.0)
-                style.videoCallCancelButtonBackgroundColor = UIColor(red: 239 / 255, green: 35 / 255, blue: 54 / 255, alpha: 1.0)
-                style.videoCallCancelButtonTextColor = .white
-                style.videoCallAcceptButtonTextColor = .white
-
-                MLMediQuo.style = style
-            }
-            
-            MLMediQuo.updateStyle()
             
             self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
         } else {
             self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_ERROR), callbackId: command.callbackId)
         }
-    }
-    
-    private func textColor(from color: UIColor) -> UIColor {
-        return color.isLight ? UIColor.black : UIColor.white
-    }
-    
-    private func statusBarStyle(from color: UIColor) -> UIStatusBarStyle {
-        return color.isLight ? .darkContent : .lightContent
     }
 
     @objc(setNavigationImage:)
@@ -316,27 +234,8 @@ import UIKit
         let imageName = command.arguments[0] as? String ?? ""
         if let image = UIImage(named: imageName),
             image.size.height != 0 {
-            // Default frame
-            let titleViewFrame = CGRect(x: 0, y: 0, width: 390, height: 44)
-            
-            // Create views
-            let imageView = UIImageView(image: image)
-            let containerView = UIView(frame: titleViewFrame)
-            containerView.addSubview(imageView)
-            // Configure title aspect and style
-            imageView.contentMode = .scaleAspectFit
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-            // Constraint image position inside title view
-            containerView.addConstraint(NSLayoutConstraint(item: imageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: titleViewFrame.height - 10))
-            containerView.addConstraint(NSLayoutConstraint(item: imageView, attribute: .centerX, relatedBy: .equal, toItem: containerView, attribute: .centerX, multiplier: 1, constant: 0))
-            containerView.addConstraint(NSLayoutConstraint(item: imageView, attribute: .centerY, relatedBy: .equal, toItem: containerView, attribute: .centerY, multiplier: 1, constant: 0))
-            
-            if var style = MLMediQuo.style {
-                style.titleView = containerView
-                MLMediQuo.style = style
-            }
 
-            MLMediQuo.updateStyle()
+            MeetingLawyersApp.setStyle(navigationImage: image)
 
             self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK), callbackId: command.callbackId)
         } else {
