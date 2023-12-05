@@ -1,6 +1,6 @@
 {
   "name": "com-meetinglawyers-cordova",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "MeetingLawyers Cordova plugin",
   "cordova": {
     "id": "com-meetinglawyers-cordova",
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/meetinglawyers/cordova-plugin-meetinglawyers.git"
+    "url": "git+https://github.com/MeetingLawyers/cordova-plugin-meetinglawyers.git"
   },
   "keywords": [
     "ecosystem:cordova",
     "cordova-ios",
     "cordova-android"
   ],
-  "author": "Manel Roca",
+  "author": "MeetingLawyers",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/meetinglawyers/cordova-plugin-meetinglawyers#readme"
+  "homepage": "https://github.com/MeetingLawyers/cordova-plugin-meetinglawyers#readme"
 }

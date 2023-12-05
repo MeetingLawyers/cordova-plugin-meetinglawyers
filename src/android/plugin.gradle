@@ -1,7 +1,13 @@
 repositories {
     google()
     jcenter()
-    maven { url "https://meetinglawyers.jfrog.io/artifactory/Android/" }
+    maven {
+            url = "https://maven.pkg.github.com/MeetingLawyers/android-sdk-chat/"
+            credentials {
+                username = "engineeringml"
+                password = "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"
+            }
+        }
 }
 
 apply plugin: 'com.google.gms.google-services'
