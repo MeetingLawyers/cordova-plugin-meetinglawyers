@@ -4,8 +4,8 @@ repositories {
     maven {
             url = "https://maven.pkg.github.com/MeetingLawyers/android-sdk-chat/"
             credentials {
-                username = "engineeringml"
-                password = "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"
+                username = "mobileml"
+                password = "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"
             }
         }
 }
