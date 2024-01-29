@@ -28,7 +28,7 @@ import UIKit
         let apikey = command.arguments[0] as? String ?? ""
         let env = command.arguments[1] as? String ?? ""
         
-        var environment: Environment = .production
+        var environment: RemoteEnvironment = .production
         if env == self.ENV_DEV {
             environment = .development
         }
@@ -165,7 +165,7 @@ import UIKit
     
     // END
     
-    @objc(openList:)
+    @MainActor @objc(openList:)
     func openList(_ command: CDVInvokedUrlCommand) {
         self.setBackButton()
         if let professionalList = MeetingLawyersApp.professionalListViewController() {
