@@ -1,6 +1,6 @@
 {
   "name": "com-meetinglawyers-cordova",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "MeetingLawyers Cordova plugin",
   "cordova": {
     "id": "com-meetinglawyers-cordova",
