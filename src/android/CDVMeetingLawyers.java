@@ -210,7 +210,10 @@ public class CDVMeetingLawyers extends CordovaPlugin {
     private void openMainActivity(CallbackContext callbackContext) {
         MeetingLawyersClient instance = MeetingLawyersClient.Companion.getInstance();
         if (instance != null) {
-            int navigationResourceId = this.cordova.getActivity().getApplication().getResources().getIdentifier(navigationImageName, "drawable", this.cordova.getActivity().getApplication().getPackageName());
+            int navigationResourceId = 0;
+            if (navigationImageName != null) {
+                navigationResourceId = this.cordova.getActivity().getApplication().getResources().getIdentifier(navigationImageName, "drawable", this.cordova.getActivity().getApplication().getPackageName());
+            }
             instance.launchProfessionalList(this.cordova.getContext(), navigationResourceId);
             callbackContext.success();
         } else {
